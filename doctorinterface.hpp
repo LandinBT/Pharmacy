@@ -12,6 +12,8 @@
 #include "time.hpp"
 
 class DoctorInterface {
+        DoctorFile* doctorFile;
+
         void addDoctor();
         void deleteDoctor();
         void modifyDoctor();
