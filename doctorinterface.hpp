@@ -12,14 +12,14 @@
 #include "time.hpp"
 
 class DoctorInterface {
-        void addDoctor(list<Doctor>*);
-        void deleteDoctor(list<Doctor>*);
-        void modifyDoctor(list<Doctor>*);
-        void showList(list<Doctor>*);
-        void deleteAll(list<Doctor>*);
+        void addDoctor();
+        void deleteDoctor();
+        void modifyDoctor();
+        void showList();
+        void deleteAll();
 
-        void importData(list<Doctor>*);
-        void exportData(list<Doctor>*);
+        void importData();
+        void exportData();
 
     public:
         DoctorInterface();

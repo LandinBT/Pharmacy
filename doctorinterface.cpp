@@ -1,7 +1,7 @@
 #include "doctorinterface.hpp"
 using namespace std;
 
-void DoctorInterface::addDoctor(list<Doctor>* listRef) {
+void DoctorInterface::addDoctor() {
     UserInterfaceUtils uiUtils;
     Doctor doctor;
     Name name;
@@ -67,7 +67,7 @@ void DoctorInterface::addDoctor(list<Doctor>* listRef) {
         departure.setMinute(stoi(minuteStr));
         doctor.setDeparture(departure);
 
-        listRef->push_back(doctor);
+        //add
 
         uiUtils.gotoxy(3, 16);
         uiUtils.setColorText(TXT_CYAN);
@@ -90,27 +90,27 @@ void DoctorInterface::addDoctor(list<Doctor>* listRef) {
     uiUtils.enterToContinue();
     }
 
-void DoctorInterface::deleteDoctor(list<Doctor>* listRef) {
+void DoctorInterface::deleteDoctor() {
 
     }
 
-void DoctorInterface::modifyDoctor(list<Doctor>* listRef) {
+void DoctorInterface::modifyDoctor() {
 
     }
 
-void DoctorInterface::showList(list<Doctor>* listRef) {
+void DoctorInterface::showList() {
 
     }
 
-void DoctorInterface::deleteAll(list<Doctor>* listRef) {
+void DoctorInterface::deleteAll() {
 
     }
 
-void DoctorInterface::importData(list<Doctor>* listRef) {
+void DoctorInterface::importData() {
 
     }
 
-void DoctorInterface::exportData(list<Doctor>* listRef) {
+void DoctorInterface::exportData() {
 
     }
 
@@ -135,31 +135,31 @@ DoctorInterface::DoctorInterface() {
 
         switch(opc) {
             case 1:
-                addDoctor(doctorList);
+                addDoctor();
                 break;
 
             case 2:
-                deleteDoctor(doctorList);
+                deleteDoctor();
                 break;
 
             case 3:
-                modifyDoctor(doctorList);
+                modifyDoctor();
                 break;
 
             case 4:
-                showList(doctorList);
+                showList();
                 break;
 
             case 5:
-                deleteAll(doctorList);
+                deleteAll();
                 break;
 
             case 6:
-                importData(doctorList);
+                importData();
                 break;
 
             case 7:
-                exportData(doctorList);
+                exportData();
                 break;
 
             case 8:

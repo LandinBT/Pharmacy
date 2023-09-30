@@ -58,66 +58,6 @@ class DoctorFile {
 /// IMPLEMENTATION
 using namespace std;
 
-void DoctorFile::reindex() {
-    string str;
-    int idx;  // index
-    Doctor doctor;
-    IndexTuple<> idxCode;      // index code
-    IndexTuple<Name> idxName;  // index name
-
-    dataFile.open(dataFileName, ios_base::in);  // open archive
-    if (!dataFile.is_open())
-        throw ios_base::failure("No se pudo abrir el archivo para lectura");
-
-    while (!dataFile.eof()) {
-        idx = dataFile.tellg();  // recuperar posicion (en realidad es el index)
-
-        getline(dataFile, str, '#');
-
-        if (str.empty()) {
-            continue;
-            }
-
-        stringstream strStream(str);
-
-        getline(strStream, str, '*');
-
-        if (str == "0") {  // registro borrado
-            continue;
-            }
-
-        strStream >> doctor;
-
-        idxCode.setIndex(idx);
-        idxCode.setData(doctor.getEmpCode());
-        indexByCodeList.push_back(idxCode);
-
-        idxName.setIndex(idx);
-        idxName.setData(doctor.getName());
-        indexByNameList.push_back(idxName);
-        }
-
-    indexByCode.open(indexCode, ios_base::out | ios_base::trunc);
-    if (!indexByCode.is_open()) {
-        throw ios_base::failure(
-            "No se pudo abrir el archivo para lectura, indexByCode");
-        }
-
-    listToFile(indexByCodeList, indexByCode);
-
-    indexByCode.close();
-
-    indexByName.open(indexName, ios_base::out | ios_base::trunc);
-    if (!indexByName.is_open()) {
-        throw ios_base::failure(
-            "No se pudo abrir el archivo para lectura, indexByCode");
-        }
-
-    listToFile(indexByNameList, indexByName);
-
-    indexByName.close();
-    }
-
 template <class T>
 list<IndexTuple<T>>& DoctorFile::fileToList(fstream& myFstream, list<IndexTuple<T>>& myList) {
     string str;
@@ -151,28 +91,14 @@ fstream& DoctorFile::listToFile(const list<T>& myList, fstream& myFstream) {
     }
 
 template <class T>
-int DoctorFile::getIndex(const list<T>&, const T&) {}
+int DoctorFile::getIndex(const list<T>& iList, const T& elem) {
+    typename list<T>::iterator it(find(iList.begin(), iList.end(), elem));
 
-DoctorFile::DoctorFile() {}
+    if(it==iList.end()) {
+        return -1; // retornamos una posicio invalida
+        }
 
-DoctorFile::~DoctorFile() {}
-
-void DoctorFile::addData(const Doctor&) {}
-
-void DoctorFile::addData(list<Doctor>&) {}
-
-void DoctorFile::deleteData(const int&) {}
-
-int DoctorFile::findData(const Doctor&) {}
-
-int DoctorFile::findData(string&) {}
-
-int DoctorFile::findData(const Name&) {}
-
-list<Doctor> DoctorFile::toList() const {}
-
-void DoctorFile::clearFile() {}
-
-void DoctorFile::compress() {}
+    return it->getIndex();
+    }
 
 #endif  // __DOCTORFILE_HPP__
