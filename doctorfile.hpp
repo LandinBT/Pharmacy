@@ -48,7 +48,7 @@ class DoctorFile {
         int findData(std::string&);  // code
         int findData(const Name&);
 
-        std::list<Doctor> toList() const;
+        std::list<Doctor> toList();
 
         void clearFile();
 
@@ -92,13 +92,16 @@ fstream& DoctorFile::listToFile(const list<T>& myList, fstream& myFstream) {
 
 template <class T>
 int DoctorFile::getIndex(const list<T>& iList, const T& elem) {
-    typename list<T>::iterator it(find(iList.begin(), iList.end(), elem));
+    int index = 0;
 
-    if(it==iList.end()) {
-        return -1; // retornamos una posicio invalida
+    for (typename std::list<T>::const_iterator it = iList.begin(); it != iList.end(); ++it) {
+        if (*it == elem) {
+            return index; // Retorna el índice encontrado
+            }
+        index++;
         }
 
-    return it->getIndex();
+    return -1; // No se encontró la coincidencia
     }
 
 #endif  // __DOCTORFILE_HPP__

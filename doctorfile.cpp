@@ -62,58 +62,189 @@ void DoctorFile::reindex() {
     }
 
 DoctorFile::DoctorFile() : dataFileName("doctor.file"),
-indexCode("doctor_code.index"), indexName("doctor_name.index") {}
+    indexCode("doctor_code.index"), indexName("doctor_name.index") {}
 
 DoctorFile::~DoctorFile() {
     if(dataFile.is_open()) {
         dataFile.close();
-    }
+        }
 
     if(indexByCode.is_open()) {
         indexByCode.close();
-    }
+        }
 
     if(indexByName.is_open()) {
         indexByName.close();
+        }
     }
-}
 
 void DoctorFile::addData(const Doctor& doc) {
     dataFile.open(dataFileName, ios_base::out | ios_base::app);
 
     if(!dataFile.is_open()) {
         throw ios_base::failure("No se pudo abrir el archivo para escritura");
-    }
+        }
 
     dataFile<<"1*"<<doc<<"#";
 
     dataFile.close();
-}
+    }
 
 void DoctorFile::addData(list<Doctor>& docList) {
     dataFile.open(dataFileName, ios_base::out | ios_base::app);
 
     if(!dataFile.is_open()) {
         throw ios_base::failure("No se pudo abrir el archivo para escritura");
-    }
+        }
 
     listToFile(docList, dataFile);
 
     dataFile.close();
 
     reindex();
-}
+    }
 
-void DoctorFile::deleteData(const int& pos) {}
+void DoctorFile::deleteData(const int& idx) {
+    // Verifica si el índice está dentro del rango de la lista
+    if (idx>=0 and idx<indexByCodeList.size()) {
+        // Busca el elemento en la lista por su índice
+        auto it = indexByCodeList.begin();
+        std::advance(it, idx);
 
-int DoctorFile::findData(const Doctor& d) {}
+        // Marca el registro como borrado en el archivo de datos
+        dataFile.seekp(it->getIndex());
+        dataFile << "0"; // Marca como borrado
 
-int DoctorFile::findData(string& code) {}
+        // Elimina el elemento de las listas de índices
+        indexByCodeList.erase(it);
+        indexByNameList.erase(std::next(indexByNameList.begin(), idx));
 
-int DoctorFile::findData(const Name& n) {}
+        // Reindexa para reflejar los cambios
+        reindex();
+        }
+    }
 
-list<Doctor> DoctorFile::toList() const {}
+int DoctorFile::findData(const Doctor& doc) {
+    // Recorre la lista de índices por código de empleado
+    int idx = 0;
+    for (const IndexTuple<>& indexTuple : indexByCodeList) {
+        // Obtiene el índice del registro y el código de empleado correspondiente
+        int recordIndex = indexTuple.getIndex();
+        std::string empCode = indexTuple.getData();
 
-void DoctorFile::clearFile() {}
+        // Compara el código de empleado
+        if (empCode == doc.getEmpCode()) {
+            // Compara los datos reales para confirmar la coincidencia
+            dataFile.seekg(recordIndex);
+            Doctor foundDoctor;
+            dataFile >> foundDoctor;
 
-void DoctorFile::compress() {}
+            // Realiza una comparación explícita de los campos relevantes
+            if (foundDoctor.getEmpCode() == doc.getEmpCode() &&
+                    foundDoctor.getName() == doc.getName() &&
+                    foundDoctor.getCertificate() == doc.getCertificate() &&
+                    foundDoctor.getArrival() == doc.getArrival() &&
+                    foundDoctor.getDeparture() == doc.getDeparture()) {
+                return idx; // Retorna el índice encontrado
+                }
+            }
+        idx++;
+        }
+
+    return -1; // No se encontró la coincidencia
+    }
+
+int DoctorFile::findData(string& code) {
+    // Busca el registro en la lista de índices por código de empleado
+    int idx = getIndex(indexByCodeList, IndexTuple<>(-1, code));
+    if (idx != -1) {
+        return idx; // Retorna el índice encontrado
+        }
+    return -1; // No se encontró la coincidencia
+    }
+
+int DoctorFile::findData(const Name& n) {
+    // Busca el registro en la lista de índices por nombre
+    int idx = getIndex(indexByNameList, IndexTuple<Name>(-1, n));
+    if (idx != -1) {
+        return idx; // Retorna el índice encontrado
+        }
+    return -1; // No se encontró la coincidencia
+    }
+
+list<Doctor> DoctorFile::toList() {
+    list<Doctor> docList;
+
+    dataFile.open(dataFileName, ios_base::in);
+
+    if (!dataFile.is_open()) {
+        throw ios_base::failure("No se pudo abrir el archivo de datos para lectura.");
+        }
+
+    while (!dataFile.eof()) {
+        string str;
+        getline(dataFile, str, '#');
+
+        if (str.empty()) {
+            continue; // Salta registros vacíos
+            }
+
+        if (str[0] == '1') {
+            Doctor doctor;
+            stringstream strStream(str);
+            strStream>>doctor;
+            docList.push_back(doctor);
+            }
+        }
+
+    dataFile.close();
+    return docList;
+    }
+
+void DoctorFile::clearFile() {
+    dataFile.close();
+    indexByCode.close();
+    indexByName.close();
+
+    remove(dataFileName.c_str());
+    remove(indexCode.c_str());
+    remove(indexName.c_str());
+
+    indexByCodeList.clear();
+    indexByNameList.clear();
+    }
+
+void DoctorFile::compress() {
+    // Crea una copia temporal del archivo de datos
+    string tempName = dataFileName+".temp";
+    fstream tempFile(tempName, ios_base::out | ios_base::trunc);
+
+    if (!tempFile.is_open()) {
+        throw ios_base::failure("No se pudo crear el archivo temporal.");
+        }
+
+    dataFile.seekg(0); // Vuelve al principio del archivo de datos
+
+    while (!dataFile.eof()) {
+        string str;
+        getline(dataFile, str, '#');
+
+        if (str.empty()) {
+            continue; // Salta registros vacíos
+            }
+
+        if (str[0] == '1') {
+            tempFile<<str<<"#"; // Escribe registros activos en el archivo temporal
+            }
+        }
+
+    // Cierra y elimina el archivo original de datos
+    dataFile.close();
+    remove(dataFileName.c_str());
+
+    // Renombra el archivo temporal como el archivo de datos original
+    rename(tempName.c_str(), dataFileName.c_str());
+
+    // Reindexa para reflejar los cambios
+    reindex();
+    }

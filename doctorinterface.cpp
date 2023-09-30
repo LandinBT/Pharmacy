@@ -116,7 +116,6 @@ void DoctorInterface::exportData() {
 
 DoctorInterface::DoctorInterface() {
     UserInterfaceUtils uiUtils;
-    list<Doctor>* doctorList;
     bool repeat = true;
     int opc;
 
