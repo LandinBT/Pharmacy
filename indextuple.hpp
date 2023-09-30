@@ -6,30 +6,37 @@
 
 template <class T = std::string>
 class IndexTuple {
-  int index;
-  T data;
+        int index;
+        T data;
 
- public:
-  IndexTuple();
-  IndexTuple(const IndexTuple&);
-  IndexTuple(const int&, const T&);
-  IndexTuple(const T&);
+    public:
+        IndexTuple();
+        IndexTuple(const IndexTuple&);
+        IndexTuple(const int&, const T&);
+        IndexTuple(const T&);
 
-  IndexTuple& operator=(const IndexTuple&);
-  IndexTuple& operator=(const T&);
+        IndexTuple& operator=(const IndexTuple&);
+        IndexTuple& operator=(const T&);
 
-  int getIndex() const;
-  T getData() const;
+        int getIndex() const;
+        T getData() const;
 
-  void setIndex(const int&);
-  void setData(const T&);
+        void setIndex(const int&);
+        void setData(const T&);
 
-  template<class U>
-  friend std::istream& operator>>(std::istream&, IndexTuple<U>&);
+        bool operator == (const IndexTuple&) const;
+        bool operator != (const IndexTuple&) const;
+        bool operator < (const IndexTuple&) const;
+        bool operator <= (const IndexTuple&) const;
+        bool operator > (const IndexTuple&) const;
+        bool operator >= (const IndexTuple&) const;
 
-  template<class U>
-  friend std::ostream& operator<<(std::ostream&, const IndexTuple<U>&);
-};
+        template<class U>
+        friend std::istream& operator>>(std::istream&, IndexTuple<U>&);
+
+        template<class U>
+        friend std::ostream& operator<<(std::ostream&, const IndexTuple<U>&);
+    };
 
 /// IMPLEMENTATION
 using namespace std;
@@ -49,57 +56,87 @@ IndexTuple<T>::IndexTuple(const T& d) : data(d) {}
 
 template <class T>
 IndexTuple<T>& IndexTuple<T>::operator=(const IndexTuple<T>& t) {
-  index = t.index;
-  data = t.data;
+    index = t.index;
+    data = t.data;
 
-  return *this;
-}
+    return *this;
+    }
 
 template <class T>
 IndexTuple<T>& IndexTuple<T>::operator=(const T& d) {
-  data = d;
+    data = d;
 
-  return *this;
-}
+    return *this;
+    }
 
 template <class T>
 int IndexTuple<T>::getIndex() const {
-  return index;
-}
+    return index;
+    }
 
 template <class T>
 T IndexTuple<T>::getData() const {
-  return data;
-}
+    return data;
+    }
 
 template <class T>
 void IndexTuple<T>::setIndex(const int& i) {
-  index = i;
-}
+    index = i;
+    }
 
 template <class T>
 void IndexTuple<T>::setData(const T& d) {
-  data = d;
-}
+    data = d;
+    }
+
+template <class T>
+bool IndexTuple<T>::operator==(const IndexTuple<T>& idxT) const {
+    return index==idxT.index;
+    }
+
+template <class T>
+bool IndexTuple<T>::operator!=(const IndexTuple<T>& idxT) const {
+    return !(*this==idxT);
+    }
+
+template <class T>
+bool IndexTuple<T>::operator<(const IndexTuple<T>& idxT) const {
+    return index<idxT.index;
+    }
+
+template <class T>
+bool IndexTuple<T>::operator<=(const IndexTuple<T>& idxT) const {
+    return *this<idxT or *this==idxT;
+    }
+
+template <class T>
+bool IndexTuple<T>::operator>(const IndexTuple<T>& idxT) const {
+    return !(*this<=idxT);
+    }
+
+template <class T>
+bool IndexTuple<T>::operator>=(const IndexTuple<T>& idxT) const {
+    return !(*this<idxT);
+    }
 
 template <class T>
 istream& operator>>(istream& is, IndexTuple<T>& t) {
-  string str;
+    string str;
 
-  getline(is, str, '*');
-  t.index = stoi(str);
+    getline(is, str, '*');
+    t.index = stoi(str);
 
-  getline(is, t.data, '#');
+    getline(is, t.data, '#');
 
-  return is;
-}
+    return is;
+    }
 
 template <class T>
 ostream& operator<<(ostream& os, const IndexTuple<T>& t) {
-  os << t.index << '*';
-  os << t.data << '#';
+    os << t.index << '*';
+    os << t.data << '#';
 
-  return os;
-}
+    return os;
+    }
 
 #endif  // __INDEXTUPLE_HPP__
