@@ -26,7 +26,7 @@ class DoctorFile {
         void reindex();
 
         template <class T>
-        std::list<T>& fileToList(const std::fstream&, std::list<T>&);
+        std::list<IndexTuple<T>>& fileToList(std::fstream&, std::list<IndexTuple<T>>&);
 
         template <class T>
         std::fstream& listToFile(const std::list<T>&, std::fstream&);
@@ -57,7 +57,7 @@ class DoctorFile {
 
 /// IMPLEMENTATION
 using namespace std;
-/*
+
 void DoctorFile::reindex() {
     string str;
     int idx;  // index
@@ -119,7 +119,7 @@ void DoctorFile::reindex() {
     }
 
 template <class T>
-list<T>& DoctorFile::fileToList(const fstream& myFstream, list<T>& myList) {
+list<IndexTuple<T>>& DoctorFile::fileToList(fstream& myFstream, list<IndexTuple<T>>& myList) {
     string str;
     T data;
 
@@ -143,7 +143,7 @@ list<T>& DoctorFile::fileToList(const fstream& myFstream, list<T>& myList) {
 
 template <class T>
 fstream& DoctorFile::listToFile(const list<T>& myList, fstream& myFstream) {
-    for(typename list<T>::iterator it(myList.begin()); it!=myList.end(); it++) {
+    for (auto it = myList.begin(); it != myList.end(); it++) {
         myFstream << "1*" << *it << "#";
         }
 
@@ -174,5 +174,5 @@ list<Doctor> DoctorFile::toList() const {}
 void DoctorFile::clearFile() {}
 
 void DoctorFile::compress() {}
-*/
+
 #endif  // __DOCTORFILE_HPP__

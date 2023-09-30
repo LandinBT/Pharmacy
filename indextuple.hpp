@@ -24,8 +24,11 @@ class IndexTuple {
   void setIndex(const int&);
   void setData(const T&);
 
-  friend std::istream& operator>>(std::istream&, IndexTuple&);
-  friend std::ostream& operator<<(std::ostream&, const IndexTuple&);
+  template<class U>
+  friend std::istream& operator>>(std::istream&, IndexTuple<U>&);
+
+  template<class U>
+  friend std::ostream& operator<<(std::ostream&, const IndexTuple<U>&);
 };
 
 /// IMPLEMENTATION

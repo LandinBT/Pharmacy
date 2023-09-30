@@ -9,7 +9,6 @@ void DoctorInterface::addDoctor(list<Doctor>* listRef) {
     Time departure;
     string title ="*** Nuevo médico ***";
     string str, hourStr, minuteStr;
-    int pos; //position
     char opc; //option
 
     do {
