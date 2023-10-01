@@ -12,19 +12,20 @@
 #include "time.hpp"
 
 class DoctorInterface {
-        DoctorFile* doctorFile;
+        DoctorFile* doctorFilePtr;
 
-        void addDoctor();
-        void deleteDoctor();
-        void modifyDoctor();
-        void showList();
-        void deleteAll();
+        void addDoctor(DoctorFile*);
+        void deleteDoctor(DoctorFile*);
+        void modifyDoctor(DoctorFile*);
+        void showList(DoctorFile*);
+        void deleteAll(DoctorFile*);
 
-        void importData();
-        void exportData();
+        void importData(DoctorFile*);
+        void exportData(DoctorFile*);
 
     public:
         DoctorInterface();
+        ~DoctorInterface();
     };
 
 #endif // DOCTORINTERFACE_HPP_INCLUDED
