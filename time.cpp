@@ -29,7 +29,10 @@ int Time::getMinute() const {
     }
 
 string Time::toString() const {
-    return to_string(hour)+":"+to_string(minute);
+    string hourStr = (hour < 10) ? "0" + to_string(hour) : to_string(hour);
+    string minuteStr = (minute < 10) ? "0" + to_string(minute) : to_string(minute);
+
+    return hourStr + ":" + minuteStr;
     }
 
 void Time::setHour(const int& h) {
@@ -69,7 +72,7 @@ istream& operator>>(istream& is, Time& t) {
 
     getline(is, str, '*');
 
-    stringstream strStream(str);
+    istringstream strStream(str);
 
     getline(strStream, str, ':');
     t.hour=stoi(str);
@@ -81,8 +84,8 @@ istream& operator>>(istream& is, Time& t) {
     }
 
 ostream& operator<<(ostream& os, const Time& t) {
-    os<<t.hour<<":";
-    os<<t.minute<<"*";
+    os<<setw(2)<<setfill('0')<<t.hour<<":";
+    os<<setw(2)<<setfill('0')<<t.minute<<"*";
 
     return os;
     }

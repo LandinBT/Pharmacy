@@ -14,7 +14,7 @@ class Patient {
   Name name;
   Date birth;
   Address address;
-  long phoneNum;  // phone number
+  std::string phoneNum;  // phone number
 
  public:
   Patient();
@@ -26,7 +26,7 @@ class Patient {
   Name getName() const;
   Date getBirth() const;
   Address getAddress() const;
-  long getPhoneNum() const;
+  std::string getPhoneNum() const;
 
   std::string toString() const;
 
@@ -34,7 +34,7 @@ class Patient {
   void setName(const Name&);
   void setBirth(const Date&);
   void setAddress(const Address&);
-  void setPhoneNum(const long&);
+  void setPhoneNum(const std::string&);
 
   bool operator==(const Patient&) const;
   bool operator!=(const Patient&) const;

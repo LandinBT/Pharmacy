@@ -34,7 +34,11 @@ int Date::getYear() const {
     }
 
 string Date::toString() const {
-    return to_string(day)+"/"+to_string(month)+"/"+to_string(year);
+    string dayStr = (day < 10) ? "0" + to_string(day) : to_string(day);
+    string monthStr = (month < 10) ? "0" + to_string(month) : to_string(month);
+    string yearStr = to_string(year);
+
+    return dayStr + "/" + monthStr + "/" + yearStr;
     }
 
 void Date::setDay(const int& d) {
@@ -93,8 +97,8 @@ istream& operator>>(istream& is, Date& d) {
     }
 
 ostream& operator<<(ostream& os, const Date& d) {
-    os<<d.day<<"/";
-    os<<d.month<<"/";
+    os<<setw(2)<<setfill('0')<<d.day<<"/";
+    os<<setw(2)<<setfill('0')<<d.month<<"/";
     os<<d.year<<"*";
 
     return os;

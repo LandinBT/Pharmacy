@@ -32,7 +32,7 @@ Address Patient::getAddress() const {
     return address;
     }
 
-long Patient::getPhoneNum() const {
+string Patient::getPhoneNum() const {
     return phoneNum;
     }
 
@@ -41,7 +41,7 @@ string Patient::toString() const {
            name.toString()+" | "+
            birth.toString()+" | "+
            address.toString()+" | "+
-           to_string(phoneNum);
+           phoneNum;
     }
 
 void Patient::setSocSecNum(const string& ssn) {
@@ -60,7 +60,7 @@ void Patient::setAddress(const Address& a) {
     address=a;
     }
 
-void Patient::setPhoneNum(const long& pn) {
+void Patient::setPhoneNum(const string& pn) {
     phoneNum=pn;
     }
 
@@ -95,22 +95,23 @@ istream& operator>>(istream& is, Patient& p) {
     is >> p.name;
     is >> p.birth;
     is >> p.address;
-    getline(is, str, '*');
-    str.erase(remove(str.begin(), str.end(), ' '), str.end());
-    p.phoneNum = stol(str);
+    getline(is, p.phoneNum, '*');
 
     return is;
     }
+
 
 ostream& operator<<(ostream& os, const Patient& p) {
     os<<p.socSecNum<<"*";
     os<<p.name;
     os<<p.birth;
     os<<p.address;
-    string str=to_string(p.phoneNum);
+    os<<p.phoneNum<<"*";
+
+    /*string str=to_string(p.phoneNum);
     str.insert(2, " ");
     str.insert(7, " ");
-    os<<str<<"*";
+    os<<str<<"*";*/
 
     return os;
     }
