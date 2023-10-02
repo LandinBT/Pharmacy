@@ -14,7 +14,7 @@ void UserInterface::doctorMenu() {
     }
 
 void UserInterface::patientMenu() {
-
+    new PatientInterface();
     }
 
 void UserInterface::medicationMenu() {

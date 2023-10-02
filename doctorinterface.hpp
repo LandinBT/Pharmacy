@@ -2,8 +2,10 @@
 #define DOCTORINTERFACE_HPP_INCLUDED
 
 #include<iostream>
+#include<fstream>
 #include<string>
 #include<list>
+#include<vector>
 
 #include "userinterfaceutils.hpp"
 #include "doctorfile.hpp"

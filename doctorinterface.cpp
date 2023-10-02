@@ -362,7 +362,6 @@ void DoctorInterface::deleteAll(DoctorFile* fileRef) {
 
 void DoctorInterface::importData(DoctorFile* fileRef) {
     UserInterfaceUtils uiUtils;
-    DoctorFile doctorFile;
 
     system("cls");
     uiUtils.setColorText(TXT_GREEN);
@@ -398,7 +397,7 @@ void DoctorInterface::importData(DoctorFile* fileRef) {
     inputFile.close();
 
     if (!importList.empty()) {
-        doctorFile.addData(importList);
+        fileRef->addData(importList);
         uiUtils.gotoxy(3, 7);
         uiUtils.setColorText(TXT_GREEN);
         cout << "Datos importados exitosamente." << endl;

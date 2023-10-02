@@ -7,6 +7,7 @@
 #include "userinterfaceutils.hpp"
 #include"consultationinterface.hpp"
 #include"doctorinterface.hpp"
+#include "patientinterface.hpp"
 
 class UserInterface {
         void consultationMenu();

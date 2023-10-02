@@ -109,7 +109,7 @@ void DoctorFile::deleteData(const int& idx) {
     if (idx>=0 and idx<indexByCodeList.size()) {
         // Busca el elemento en la lista por su índice
         auto it = indexByCodeList.begin();
-        std::advance(it, idx);
+        advance(it, idx);
 
         // Marca el registro como borrado en el archivo de datos
         dataFile.seekp(it->getIndex());
@@ -117,7 +117,7 @@ void DoctorFile::deleteData(const int& idx) {
 
         // Elimina el elemento de las listas de índices
         indexByCodeList.erase(it);
-        indexByNameList.erase(std::next(indexByNameList.begin(), idx));
+        indexByNameList.erase(next(indexByNameList.begin(), idx));
 
         // Reindexa para reflejar los cambios
         reindex();
@@ -129,22 +129,18 @@ int DoctorFile::findData(const Doctor& doc) {
     int idx = 0;
     for (const IndexTuple<>& indexTuple : indexByCodeList) {
         // Obtiene el índice del registro y el código de empleado correspondiente
-        int recordIndex = indexTuple.getIndex();
-        std::string empCode = indexTuple.getData();
+        int idxAux = indexTuple.getIndex();
+        string empCode = indexTuple.getData();
 
         // Compara el código de empleado
         if (empCode == doc.getEmpCode()) {
             // Compara los datos reales para confirmar la coincidencia
-            dataFile.seekg(recordIndex);
-            Doctor foundDoctor;
-            dataFile >> foundDoctor;
+            dataFile.seekg(idxAux);
+            Doctor docTemp;
+            dataFile>>docTemp;
 
             // Realiza una comparación explícita de los campos relevantes
-            if (foundDoctor.getEmpCode() == doc.getEmpCode() &&
-                    foundDoctor.getName() == doc.getName() &&
-                    foundDoctor.getCertificate() == doc.getCertificate() &&
-                    foundDoctor.getArrival() == doc.getArrival() &&
-                    foundDoctor.getDeparture() == doc.getDeparture()) {
+            if (docTemp==doc) {
                 return idx; // Retorna el índice encontrado
                 }
             }
