@@ -35,7 +35,7 @@ class IndexTuple {
         friend std::istream& operator>>(std::istream&, IndexTuple<U>&);
 
         template<class U>
-        friend std::ostream& operator<<(std::ostream&, const IndexTuple<U>&);
+        friend std::ostream& operator<<(std::ostream&, IndexTuple<U>&);
     };
 
 /// IMPLEMENTATION
@@ -119,23 +119,29 @@ bool IndexTuple<T>::operator>=(const IndexTuple<T>& idxT) const {
     return !(*this<idxT);
     }
 
-template <class T>
-istream& operator>>(istream& is, IndexTuple<T>& t) {
+template <class U>
+istream& operator>>(istream& is, IndexTuple<U>& t) {
     string str;
 
     getline(is, str, '*');
     t.index = stoi(str);
 
-    getline(is, t.data, '#');
+    is>>t.data;
 
     return is;
     }
 
-template <class T>
-ostream& operator<<(ostream& os, const IndexTuple<T>& t) {
+template <class U>
+ostream& operator<<(ostream& os, IndexTuple<U>& t) {
     os << t.index << '*';
-    os << t.data << '#';
+    os << t.data << '*';
 
+    return os;
+    }
+
+template <class T>
+ostream& operator << (ostream& os, const IndexTuple<T>& t) {
+    os << t.getIndex() << "*" << t.getData() << "*";
     return os;
     }
 
