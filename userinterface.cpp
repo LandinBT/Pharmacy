@@ -6,7 +6,7 @@ void UserInterface::consultationMenu() {
     }
 
 void UserInterface::diagnosisMenu() {
-
+    new DiagnosisInterface();
     }
 
 void UserInterface::doctorMenu() {
@@ -18,7 +18,7 @@ void UserInterface::patientMenu() {
     }
 
 void UserInterface::medicationMenu() {
-
+    new MedicationInterface();
     }
 
 UserInterface::UserInterface() {

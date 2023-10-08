@@ -5,9 +5,11 @@
 #include<string>
 
 #include "userinterfaceutils.hpp"
-#include"consultationinterface.hpp"
-#include"doctorinterface.hpp"
+#include "consultationinterface.hpp"
+#include "diagnosisinterface.hpp"
+#include "doctorinterface.hpp"
 #include "patientinterface.hpp"
+#include "medicationinterface.hpp"
 
 class UserInterface {
         void consultationMenu();
