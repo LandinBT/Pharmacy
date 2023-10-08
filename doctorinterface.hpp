@@ -18,6 +18,8 @@ class DoctorInterface {
 
         void addDoctor(DoctorFile*);
         void deleteDoctor(DoctorFile*);
+        void searchByEmpCode(DoctorFile*);
+        void searchByName(DoctorFile*);
         void modifyDoctor(DoctorFile*);
         void showList(DoctorFile*);
         void deleteAll(DoctorFile*);

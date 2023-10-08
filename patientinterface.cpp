@@ -140,7 +140,6 @@ void PatientInterface::deletePatient(PatientFile* filePtr) {
     uiUtils.setColorText(TXT_WHITE);
     getline(cin, ssn);
     trim(ssn);
-    cout<<ssn<<endl;
 
     int idx = filePtr->findData(ssn);
 
