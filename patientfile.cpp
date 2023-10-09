@@ -21,7 +21,7 @@ void PatientFile::reindex() {
         idx = int(dataFile.tellg());
         getline(dataFile, str, '#');
 
-        if (str.empty() || str[0] == '0') {
+        if (str.empty() or str[0] == '0') {
             continue; // Saltar registros vacíos o marcados como eliminados
             }
 
@@ -90,6 +90,8 @@ void PatientFile::addData(const Patient& pat) {
     list<Patient> patList;
     patList.push_back(pat);
     addData(patList);
+
+    reindex();
     }
 
 void PatientFile::addData(list<Patient>& patList) {
@@ -120,6 +122,7 @@ void PatientFile::deleteData(const int& idx) {
     dataFile.close();
 
     reindex();
+    compress();
     }
 
 int PatientFile::findData(const Patient& pat) {
