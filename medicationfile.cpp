@@ -2,177 +2,260 @@
 using namespace std;
 
 void MedicationFile::reindex() {
-    Medication medication;
-    IndexTuple<> idxCode;
-    string str;
-    int idx;
+    indexByCodeList.clear();
+    indexByNameList.clear();
 
-    dataFile.open(dataFileName, ios_base::in);
+    std::fstream dataFile(dataFileName, std::ios_base::in);
 
     if (!dataFile.is_open()) {
-        throw ios_base::failure("No se pudo abrir el archivo para lectura");
+        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        return;
         }
 
-    indexByCodeList.clear();
-
-    while (!dataFile.eof()) {
-        idx = int(dataFile.tellg());
-        getline(dataFile, str, '#');
-
-        if (str.empty() or str[0] == '0') {
-            continue;
+    int index = 0;
+    std::string line;
+    while (std::getline(dataFile, line, '#')) {
+        if (line.empty() || line[0] == '0') {
+            index++;
+            continue; // Saltar registros vacíos o marcados como eliminados
             }
 
-        stringstream strStream(str);
+        std::stringstream ss(line);
+        Medication medication;
+        ss >> medication;
 
-        getline(strStream, str, '*');
-        if (str=="1") {
-            strStream>>medication;
+        IndexTuple<std::string> indexCode;
+        indexCode.setIndex(index);
+        indexCode.setData(medication.getCode());
+        indexByCodeList.push_back(indexCode);
 
-            idxCode.setIndex(idx);
-            idxCode.setData(medication.getCode());
-            indexByCodeList.push_back(idxCode);
-            }
+        IndexTuple<std::string> indexName;
+        indexName.setIndex(index);
+        indexName.setData(medication.getName());
+        indexByNameList.push_back(indexName);
+
+        index++;
         }
-
-    indexByCode.open(indexCode, ios_base::out | ios_base::trunc);
-    if (!indexByCode.is_open()) {
-        throw ios_base::failure("No se pudo abrir el archivo para escritura");
-        }
-
-    listToFile(indexByCodeList, indexByCode);
-    indexByCode.close();
 
     dataFile.close();
     }
 
-MedicationFile::MedicationFile() : dataFileName("medication.file"), indexCode("medication_code.index") {}
-
-MedicationFile::~MedicationFile() {
-    if(dataFile.is_open()) dataFile.close();
-
-    if(indexByCode.is_open()) indexByCode.close();
+MedicationFile::MedicationFile()
+    : dataFileName("medication.data"),
+      indexCode("medication_code.index"),
+      indexName("medication_name.index") {
+    reindex();
     }
 
-void MedicationFile::addData(const Medication& med) {
-    dataFile.open(dataFileName, ios_base::out | ios_base::app);
+MedicationFile::~MedicationFile() {}
 
-    if(!dataFile.is_open()) throw ios_base::failure("No se pudo abrir el archivo para escritura");
+void MedicationFile::addData(const Medication& medication) {
+    std::fstream dataFile(dataFileName, std::ios_base::out | std::ios_base::app);
 
-    dataFile<<"1*"<<med<<"#";
+    if (!dataFile.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de datos para escritura." << std::endl;
+        return;
+        }
 
-    dataFile.close();
-    }
-
-void MedicationFile::addData(list<Medication>& medList) {
-    dataFile.open(dataFileName, ios_base::out | ios_base::app);
-
-    if(!dataFile.is_open()) throw ios_base::failure("No se pudo abrir el archivo para escritura");
-
-    listToFile(medList, dataFile);
-
+    dataFile << medication << '#';
     dataFile.close();
 
     reindex();
     }
 
-void MedicationFile::deleteData(const int& idx) {
-    if(idx>=0 and idx<indexByCodeList.size()) {
-        auto it=indexByCodeList.begin();
-        advance(it, idx);
+void MedicationFile::addData(std::list<Medication>& medicationList) {
+    std::fstream dataFile(dataFileName, std::ios_base::out | std::ios_base::app);
 
-        dataFile.seekp(it->getIndex());
-        dataFile<<"0";
-
-        indexByCodeList.erase(it);
-
-        reindex();
+    if (!dataFile.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de datos para escritura." << std::endl;
+        return;
         }
+
+    listToFile(medicationList, dataFile);
+    dataFile.close();
+
+    reindex();
+    }
+
+void MedicationFile::deleteData(const int& index) {
+    std::fstream dataFile(dataFileName, std::ios_base::in | std::ios_base::out);
+
+    if (!dataFile.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura/escritura." << std::endl;
+        return;
+        }
+
+    dataFile.seekp(index, std::ios::beg);
+    dataFile.put('0');
+    dataFile.close();
+
+    reindex();
+    compress();
     }
 
 int MedicationFile::findData(const Medication& med) {
-    int idx;
-    for(const IndexTuple<>& idxTup : indexByCodeList) {
-        int idxAux=idxTup.getIndex();
-        string code=idxTup.getData();
+    int index = 0;
+    for (const IndexTuple<std::string>& indexTuple : indexByCodeList) {
+        int idxAux = indexTuple.getIndex();
+        std::string code = indexTuple.getData();
 
-        if(code==med.getCode()) {
-            dataFile.seekg(idxAux);
-            Medication medTemp;
-            dataFile>>medTemp;
-
-            if(medTemp==med) return idx;
+        if (code == med.getCode()) {
+            // Ahora que encontramos un código coincidente, verificamos si el objeto Medication también coincide
+            Medication medTemp = retrieve(idxAux);
+            if (medTemp == med) {
+                return index;
             }
+        }
+        index++;
+    }
+    return -1;
+    }
 
-        idx++;
+int MedicationFile::findDataCode(string& code) {
+    int index = 0;
+    for (const IndexTuple<std::string>& indexTuple : indexByCodeList) {
+        const std::string& storedCode = indexTuple.getData();
+        if (storedCode == code) {
+            return index;
+        }
+        index++;
+    }
+    return -1;
+    }
+
+int MedicationFile::findDataName(string& name) {
+    int index = 0;
+    for (const IndexTuple<std::string>& indexTuple : indexByNameList) {
+        const std::string& storedName = indexTuple.getData();
+        if (storedName == name) {
+            return index;
+        }
+        index++;
+    }
+    return -1;
+    }
+
+Medication MedicationFile::retrieve(const int& index) {
+    std::fstream dataFile(dataFileName, std::ios_base::in);
+
+    if (!dataFile.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        throw std::runtime_error("Error al abrir el archivo de datos.");
         }
 
-    return -1;
-    }
+    dataFile.seekg(index, std::ios::beg);
+    std::string line;
+    std::getline(dataFile, line, '#');
 
-int MedicationFile::findData(string& code) {
-    int idx=getIndex(indexByCodeList, IndexTuple<>(-1, code));
+    if (line.empty() || line[0] == '0') {
+        throw std::runtime_error("Dato borrado o no encontrado.");
+        }
 
-    if(idx!=-1) return idx;
-
-    return -1;
-    }
-
-list<Medication> MedicationFile::toList() {
-    dataFile.open(dataFileName, ios_base::in);
-
-    if(!dataFile.is_open())
-        throw ios_base::failure("No se pudo abrir el archivo de datos para lectura");
-
-    list<Medication> medList;
-    medList=fileToList(dataFile, medList);
+    std::stringstream ss(line);
+    Medication medication;
+    ss >> medication;
 
     dataFile.close();
+    return medication;
+    }
 
-    return medList;
+std::list<Medication> MedicationFile::toList() {
+    std::fstream dataFile(dataFileName, std::ios_base::in);
+
+    if (!dataFile.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        throw std::runtime_error("Error al abrir el archivo de datos.");
+        }
+
+    std::list<Medication> medicationList;
+    fileToList(dataFile, medicationList);
+
+    dataFile.close();
+    return medicationList;
     }
 
 void MedicationFile::clearFile() {
-    dataFile.close();
-    indexByCode.close();
+    std::remove(dataFileName.c_str());
+    std::remove(indexCode.c_str());
+    std::remove(indexName.c_str());
 
-    remove(dataFileName.c_str());
-    remove(indexCode.c_str());
-
-    dataFile.clear();
     indexByCodeList.clear();
+    indexByNameList.clear();
     }
 
 void MedicationFile::compress() {
-    string tempFileName=dataFileName+".temp";
-    fstream tempFile(tempFileName, ios_base::out | ios_base::trunc);
+    std::string tempFileName = dataFileName + ".temp";
+    std::fstream tempFile(tempFileName, std::ios_base::out | std::ios_base::trunc);
 
-    if(!tempFile.is_open()) throw ios_base::failure("No se pudo crear el archivo temporal.");
+    if (!tempFile.is_open()) {
+        std::cerr << "Error: No se pudo crear el archivo temporal." << std::endl;
+        return;
+        }
 
-    dataFile.seekg(0);
+    std::fstream dataFile(dataFileName, std::ios_base::in);
 
-    while(!dataFile.eof()) {
-        string str;
-        getline(dataFile, str, '#');
+    if (!dataFile.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        return;
+        }
 
-        if(str.empty()) continue;
+    int index = 0;
+    std::string line;
+    while (std::getline(dataFile, line, '#')) {
+        if (line.empty()) {
+            index++;
+            continue; // Saltar registros vacíos
+            }
 
-        if(str[0]=='1') tempFile<<str<<"#";
+        if (line[0] == '1') {
+            tempFile << line << '#';
+            }
+
+        index++;
         }
 
     dataFile.close();
+    tempFile.close();
 
-    remove(dataFileName.c_str());
-
-    rename(tempFileName.c_str(), dataFileName.c_str());
+    std::remove(dataFileName.c_str());
+    std::rename(tempFileName.c_str(), dataFileName.c_str());
 
     reindex();
     }
 
-void MedicationFile::importFromBackup() {
-    reindex();
+void MedicationFile::importFromBackup(const std::string& fileName) {
+    std::ifstream archive(fileName);
+
+    if (!archive.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de respaldo para lectura." << std::endl;
+        return;
+        }
+
+    std::list<Medication> medicationList;
+    Medication medication;
+
+    while (archive >> medication) {
+        medicationList.push_back(medication);
+        }
+
+    archive.close();
+
+    addData(medicationList);
     }
 
-void MedicationFile::exportToBackup() {
-    compress();
+void MedicationFile::exportToBackup(const std::string& fileName) {
+    std::ofstream archive(fileName);
+
+    if (!archive.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo de respaldo para escritura." << std::endl;
+        return;
+        }
+
+    std::list<Medication> medicationList = toList();
+
+    for (const Medication& medication : medicationList) {
+        archive << medication << std::endl;
+        }
+
+    archive.close();
     }

@@ -14,98 +14,99 @@
 #include "medication.hpp"
 
 class MedicationFile {
-  std::string dataFileName;
-  std::string indexCode;
+        std::string dataFileName;
+        std::string indexCode;
+        std::string indexName;
 
-  std::fstream dataFile;
-  std::fstream indexByCode;
+        std::fstream dataFile;
+        std::fstream indexByCode;
+        std::fstream indexByName;
 
-  std::list<IndexTuple<>> indexByCodeList;
+        std::list<IndexTuple<>> indexByCodeList;
+        std::list<IndexTuple<>> indexByNameList;
 
-  void reindex();
+        void reindex();
 
-  template <class T>
-  std::list<T>& fileToList(std::fstream&,
-                                       std::list<T>&);
+        template <class T>
+        std::list<T>& fileToList(std::fstream&,
+                                 std::list<T>&);
 
-  template <class T>
-  std::fstream& listToFile(const std::list<T>&, std::fstream&);
+        template <class T>
+        std::fstream& listToFile(const std::list<T>&, std::fstream&);
 
-  template <class T>
-  int getIndex(const std::list<T>&, const T&);
+        template <class T>
+        int getIndex(const std::list<T>&, const T&);
 
- public:
-  MedicationFile();
+    public:
+        MedicationFile();
 
-  ~MedicationFile();
+        ~MedicationFile();
 
-  void addData(const Medication&);
-  void addData(std::list<Medication>&);
+        void addData(const Medication&);
+        void addData(std::list<Medication>&);
 
-  void deleteData(const int&);  // index
+        void deleteData(const int&);  // index
 
-  int findData(const Medication&);
-  int findData(std::string&);  // code
+        int findData(const Medication&);
+        int findDataCode(std::string&);  // code
+        int findDataName(std::string&);  // name
 
-  std::list<Medication> toList();
+        Medication retrieve(const int&); //index
 
-  void clearFile();
+        std::list<Medication> toList();
 
-  void compress();
+        void clearFile();
 
-  void importFromBackup();
-  void exportToBackup();
-};
+        void compress();
+
+        void importFromBackup(const std::string&);
+        void exportToBackup(const std::string&);
+    };
 
 /// IMPLEMENTATION
 using namespace std;
 
 template <class T>
-list<T>& MedicationFile::fileToList(
-    fstream& myFstream, list<T>& myList) {
-        string str;
-        T data;
+std::list<T>& MedicationFile::fileToList(std::fstream& file, std::list<T>& dataList) {
+    dataList.clear();
 
-        while(!myFstream.eof()) {
-            getline(myFstream, str, '#');
+    if (!file.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo para lectura." << std::endl;
+        return dataList;
+        }
 
-            if(str.empty()) continue;
+    T item;
+    while (file >> item) {
+        dataList.push_back(item);
+        }
 
-            stringstream strStream(str);
+    return dataList;
+    }
 
-            getline(strStream, str, '*');
+template <class T>
+std::fstream& MedicationFile::listToFile(const std::list<T>& dataList, std::fstream& file) {
+    if (!file.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo para escritura." << std::endl;
+        return file;
+        }
 
-            if(str=="1"){
-                strStream>>data;
-                myList.push_back(data);
+    for (const T& item : dataList) {
+        file << item << '#';
+        }
+
+    return file;
+    }
+
+template <class T>
+int MedicationFile::getIndex(const std::list<T>& dataList, const T& item) {
+    int index = 0;
+    for (const T& data : dataList) {
+        if (data == item) {
+            return index;
             }
+        index++;
         }
-
-        return myList;
-    }
-
-template <class T>
-fstream& MedicationFile::listToFile(const list<T>& myList, fstream& myFstream) {
-    for(auto it=myList.begin(); it!=myList.end(); it++){
-        myFstream<<"1*"<<*it<<"#";
-    }
-
-    return myFstream;
-}
-
-template <class T>
-int MedicationFile::getIndex(const list<T>& myList, const T& elem) {
-    int idx=0;
-
-    for(typename list<T>::const_iterator it=myList.begin(); it!=myList.end(); ++it) {
-        if(*it==elem){
-            return idx;
-        }
-
-        idx++;
-    }
-
     return -1;
-}
+    }
 
 #endif  // __MEDICATIONFILE_HPP__
