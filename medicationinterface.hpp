@@ -15,15 +15,16 @@
 class MedicationInterface {
     MedicationFile* medicationFilePtr;
 
-    void addMedication(MedicationFile*);
-    void deleteMedication(MedicationFile*);
-    void searchByCode(MedicationFile*);
-    void modifyMedication(MedicationFile*);
-    void showList(MedicationFile*);
-    void deleteAll(MedicationFile*);
+    void addMedication();
+    void deleteMedication();
+    void searchByCode();
+    void searchByName();
+    void modifyMedication();
+    void showList();
+    void deleteAll();
 
-    void importData(MedicationFile*);
-    void exportData(MedicationFile*);
+    void importData();
+    void exportData();
 
 public:
     MedicationInterface();

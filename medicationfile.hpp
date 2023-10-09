@@ -91,7 +91,7 @@ std::fstream& MedicationFile::listToFile(const std::list<T>& dataList, std::fstr
         }
 
     for (const T& item : dataList) {
-        file << item << '#';
+        file << item;
         }
 
     return file;

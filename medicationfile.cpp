@@ -5,31 +5,31 @@ void MedicationFile::reindex() {
     indexByCodeList.clear();
     indexByNameList.clear();
 
-    std::fstream dataFile(dataFileName, std::ios_base::in);
+    fstream dataFile(dataFileName, ios_base::in);
 
     if (!dataFile.is_open()) {
-        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
         return;
         }
 
     int index = 0;
-    std::string line;
-    while (std::getline(dataFile, line, '#')) {
+    string line;
+    while (getline(dataFile, line, '#')) {
         if (line.empty() || line[0] == '0') {
             index++;
             continue; // Saltar registros vacíos o marcados como eliminados
             }
 
-        std::stringstream ss(line);
+        stringstream ss(line);
         Medication medication;
         ss >> medication;
 
-        IndexTuple<std::string> indexCode;
+        IndexTuple<> indexCode;
         indexCode.setIndex(index);
         indexCode.setData(medication.getCode());
         indexByCodeList.push_back(indexCode);
 
-        IndexTuple<std::string> indexName;
+        IndexTuple<> indexName;
         indexName.setIndex(index);
         indexName.setData(medication.getName());
         indexByNameList.push_back(indexName);
@@ -41,7 +41,7 @@ void MedicationFile::reindex() {
     }
 
 MedicationFile::MedicationFile()
-    : dataFileName("medication.data"),
+    : dataFileName("medication.file"),
       indexCode("medication_code.index"),
       indexName("medication_name.index") {
     reindex();
@@ -234,7 +234,7 @@ void MedicationFile::importFromBackup(const std::string& fileName) {
     std::list<Medication> medicationList;
     Medication medication;
 
-    while (archive >> medication) {
+    while (archive>>medication) {
         medicationList.push_back(medication);
         }
 
@@ -254,7 +254,7 @@ void MedicationFile::exportToBackup(const std::string& fileName) {
     std::list<Medication> medicationList = toList();
 
     for (const Medication& medication : medicationList) {
-        archive << medication << std::endl;
+        archive<<medication<<"#";
         }
 
     archive.close();

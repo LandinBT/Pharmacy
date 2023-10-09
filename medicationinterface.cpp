@@ -1,56 +1,73 @@
 #include "medicationinterface.hpp"
 using namespace std;
 
-void MedicationInterface::addMedication(MedicationFile* filePtr) {
+void MedicationInterface::addMedication() {
     UserInterfaceUtils uiUtils;
     Medication medication;
-    string str, title="*** Nuevo Medicamento ***";
+    string str, title = "*** Nuevo Medicamento ***";
     char opc;
 
     do {
         system("cls");
         uiUtils.setColorText(TXT_GREEN);
         uiUtils.centerText(title, 1);
-        cout<<title;
+        cout << title;
 
-        uiUtils.gotoxy(3,5);
+        uiUtils.gotoxy(3, 5);
         uiUtils.setColorText(TXT_CYAN);
-        cout<<"Código: ";
+        cout << "Código: ";
         uiUtils.setColorText(TXT_WHITE);
         getline(cin, str);
         medication.setCode(str);
 
-        uiUtils.gotoxy(3,7);
+        uiUtils.gotoxy(3, 7);
         uiUtils.setColorText(TXT_CYAN);
-        cout<<"Nombre: ";
+        cout << "Nombre: ";
         uiUtils.setColorText(TXT_WHITE);
         getline(cin, str);
         medication.setName(str);
 
-        filePtr->addData(medication);
+        // Validar que el código y el nombre no estén vacíos
+        if (medication.getCode().empty() or medication.getName().empty()) {
+            uiUtils.gotoxy(3, 11);
+            uiUtils.setColorText(TXT_RED);
+            cout << "Código y nombre son obligatorios. Inténtalo de nuevo." << endl;
+            continue;  // Volver a solicitar los datos si no son válidos
+            }
 
-        uiUtils.gotoxy(3,9);
+        // Agregar el medicamento solo si el código no existe ya
+        int existingIndex = medicationFilePtr->findData(medication);
+        if (existingIndex != -1) {
+            uiUtils.gotoxy(3, 11);
+            uiUtils.setColorText(TXT_RED);
+            cout << "Ya existe un medicamento con este código. Inténtalo de nuevo." << endl;
+            continue;  // Volver a solicitar los datos si no son válidos
+            }
+
+        medicationFilePtr->addData(medication);
+
+        uiUtils.gotoxy(3, 13);
         uiUtils.setColorText(TXT_CYAN);
-        cout<<"Desea agregar otro medicamento? (s/n): ";
+        cout << "Desea agregar otro medicamento? (s/n): ";
         uiUtils.setColorText(TXT_WHITE);
-        cin>>opc;
-        opc=toupper(opc);
+        cin >> opc;
+        opc = toupper(opc);
         cin.ignore();
         }
-    while(opc=='S');
+    while (opc == 'S');
 
-    if(opc!='S' and opc!='N') {
+    if (opc != 'S' && opc != 'N') {
         uiUtils.setColorText(TXT_RED);
-        uiUtils.gotoxy(3, 11);
-        cout<<"Opción inválida!"<<endl;
+        uiUtils.gotoxy(3, 15);
+        cout << "Opción inválida!" << endl;
         }
 
-    uiUtils.gotoxy(3, 13);
+    uiUtils.gotoxy(3, 17);
     uiUtils.setColorText(TXT_CYAN);
     uiUtils.enterToContinue();
     }
 
-void MedicationInterface::deleteMedication(MedicationFile* filePtr) {
+void MedicationInterface::deleteMedication() {
     UserInterfaceUtils uiUtils;
     Medication medication;
     string code, title="*** Eliminar medicamento ***";
@@ -68,14 +85,14 @@ void MedicationInterface::deleteMedication(MedicationFile* filePtr) {
     getline(cin, code);
     medication.setCode(code);
 
-    int idx=filePtr->findData(medication);
+    int idx=medicationFilePtr->findData(medication);
 
     if(idx!=-1) {
         uiUtils.gotoxy(3, 7);
         uiUtils.setColorText(TXT_GREEN);
         cout<<"Medicamento encontrado:";
 
-        list<Medication> medList=filePtr->toList();
+        list<Medication> medList=medicationFilePtr->toList();
         auto it=medList.begin();
         advance(it, idx);
         Medication foundMed=*it;
@@ -93,7 +110,7 @@ void MedicationInterface::deleteMedication(MedicationFile* filePtr) {
         cin.ignore();
 
         if(opc=='S') {
-            filePtr->deleteData(idx);
+            medicationFilePtr->deleteData(idx);
             uiUtils.gotoxy(3, 15);
             uiUtils.setColorText(TXT_GREEN);
             cout<<"Medicamento eliminado exitosamente.";
@@ -108,17 +125,17 @@ void MedicationInterface::deleteMedication(MedicationFile* filePtr) {
             uiUtils.setColorText(TXT_RED);
             cout<<"Opción inválida!";
             }
-
-        uiUtils.gotoxy(3, 17);
-        uiUtils.setColorText(TXT_CYAN);
-        uiUtils.enterToContinue();
         }
+
+    uiUtils.gotoxy(3, 17);
+    uiUtils.setColorText(TXT_CYAN);
+    uiUtils.enterToContinue();
     }
 
-void MedicationInterface::searchByCode(MedicationFile* filePtr) {
+void MedicationInterface::searchByCode() {
     UserInterfaceUtils uiUtils;
     Medication medication;
-    string code, title="*** Buscar medicamento ***";
+    string code, title="*** Buscar medicamento por código ***";
 
     system("cls");
     uiUtils.setColorText(TXT_GREEN);
@@ -130,16 +147,16 @@ void MedicationInterface::searchByCode(MedicationFile* filePtr) {
     cout << "Ingrese el código del medicamento: ";
     uiUtils.setColorText(TXT_WHITE);
     getline(cin, code);
-    medication.setCode(code);
 
-    int idx = filePtr->findData(medication);
+    int idx = medicationFilePtr->findDataCode(code);
+
+    list<Medication> medList = medicationFilePtr->toList();
 
     if (idx != -1) {
         uiUtils.gotoxy(3, 7);
         uiUtils.setColorText(TXT_GREEN);
         cout<<"Medicamento encontrado:";
 
-        list<Medication> medList = filePtr->toList();
         auto it = medList.begin();
         advance(it, idx);
         Medication foundMed=*it;
@@ -159,7 +176,51 @@ void MedicationInterface::searchByCode(MedicationFile* filePtr) {
     uiUtils.enterToContinue();
     }
 
-void MedicationInterface::modifyMedication(MedicationFile* filePtr) {
+void MedicationInterface::searchByName() {
+    UserInterfaceUtils uiUtils;
+    Medication medication;
+    string name, title="*** Buscar medicamento por nombre ***";
+
+    system("cls");
+    uiUtils.setColorText(TXT_GREEN);
+    uiUtils.centerText(title, 1);
+    cout<<title;
+
+    uiUtils.gotoxy(3, 5);
+    uiUtils.setColorText(TXT_CYAN);
+    cout << "Ingrese el nombre del medicamento: ";
+    uiUtils.setColorText(TXT_WHITE);
+    getline(cin, name);
+
+    int idx = medicationFilePtr->findDataName(name);
+
+    list<Medication> medList = medicationFilePtr->toList();
+
+    if (idx != -1) {
+        uiUtils.gotoxy(3, 7);
+        uiUtils.setColorText(TXT_GREEN);
+        cout<<"Medicamento encontrado:";
+
+        auto it = medList.begin();
+        advance(it, idx);
+        Medication foundMed=*it;
+
+        uiUtils.gotoxy(3, 9);
+        uiUtils.setColorText(TXT_CYAN);
+        cout<<foundMed.toString()<<endl;
+        }
+    else {
+        uiUtils.gotoxy(3, 7);
+        uiUtils.setColorText(TXT_RED);
+        cout<<"No se encontró ningún medicamento con el nombre "<<name;
+        }
+
+    uiUtils.gotoxy(3, 11);
+    uiUtils.setColorText(TXT_CYAN);
+    uiUtils.enterToContinue();
+    }
+
+void MedicationInterface::modifyMedication() {
     /*    UserInterfaceUtils uiUtils;
         Medication medication;
         string code, title="*** Modificar medicamento ***";
@@ -204,7 +265,7 @@ void MedicationInterface::modifyMedication(MedicationFile* filePtr) {
         */
     }
 
-void MedicationInterface::showList(MedicationFile* filePtr) {
+void MedicationInterface::showList() {
     UserInterfaceUtils uiUtils;
     string title="*** Lista de medicamentos ***";
 
@@ -214,7 +275,7 @@ void MedicationInterface::showList(MedicationFile* filePtr) {
     cout<<title;
 
     try {
-        list<Medication> medList = filePtr->toList();
+        list<Medication> medList = medicationFilePtr->toList();
 
         if (!medList.empty()) {
             uiUtils.gotoxy(3, 5);
@@ -242,9 +303,9 @@ void MedicationInterface::showList(MedicationFile* filePtr) {
     uiUtils.enterToContinue();
     }
 
-void MedicationInterface::deleteAll(MedicationFile* filePtr) {
+void MedicationInterface::deleteAll() {
     UserInterfaceUtils uiUtils;
-    string title="*** Eliminar todos los pacientes ***";
+    string title="*** Eliminar todos los medicamentos ***";
     char opc;
 
     system("cls");
@@ -261,7 +322,7 @@ void MedicationInterface::deleteAll(MedicationFile* filePtr) {
     cin.ignore();
 
     if(opc=='S') {
-        filePtr->clearFile();
+        medicationFilePtr->clearFile();
         uiUtils.gotoxy(3, 7);
         uiUtils.setColorText(TXT_GREEN);
         cout<<"Todos los medicamentos han sido eliminados.";
@@ -282,18 +343,21 @@ void MedicationInterface::deleteAll(MedicationFile* filePtr) {
     uiUtils.enterToContinue();
     }
 
-void MedicationInterface::importData(MedicationFile* filePtr) {
+void MedicationInterface::importData() {
     UserInterfaceUtils uiUtils;
     list<Medication> medList;
-    string title="*** Importar datos de medicamentos ***";
+    string str, title="*** Recuperar datos de medicamentos ***";
 
     system("cls");
     uiUtils.setColorText(TXT_GREEN);
     uiUtils.centerText(title, 1);
     cout<<title;
 
+    cout<<"Nombre del archivo: ";
+    getline(cin, str);
+
     try {
-        filePtr->importFromBackup();
+        medicationFilePtr->importFromBackup(str);
         }
     catch (const ios_base::failure& ex) {
         uiUtils.gotoxy(3, 5);
@@ -312,17 +376,20 @@ void MedicationInterface::importData(MedicationFile* filePtr) {
     uiUtils.enterToContinue();
     }
 
-void MedicationInterface::exportData(MedicationFile* filePtr) {
+void MedicationInterface::exportData() {
     UserInterfaceUtils uiUtils;
-    string title="*** Exportar datos de medicamentos ***";
+    string str, title="*** Guardar datos de medicamentos ***";
 
     system("cls");
     uiUtils.setColorText(TXT_GREEN);
     uiUtils.centerText(title, 1);
     cout<<title;
 
+    cout<<"Nombre del archivo: ";
+    getline(cin, str);
+
     try {
-        filePtr->exportToBackup();
+        medicationFilePtr->exportToBackup(str);
         }
     catch (const ios_base::failure& ex) {
         uiUtils.gotoxy(3, 5);
@@ -350,12 +417,12 @@ MedicationInterface::MedicationInterface() {
 
     string title ="*** M E D I C A M E N T O S ***";
     vector<string> options = {"Nuevo medicamento", "Eliminar medicamento",
-                              "Buscar por código", "Modificar medicamento",
-                              "Mostrar lista", "Eliminar todo",
-                              "Importar del archivo de respaldo",
-                              "Exportar a un archivo de respaldo", "Regresar"
+                              "Buscar por código", "Buscar por nombre",
+                              "Modificar medicamento", "Mostrar lista",
+                              "Eliminar todo", "Recuperar", "Guardar",
+                              "Regresar"
                              };
-    int numOpt=9;
+    int numOpt=10;
 
     do {
         system("title FARMACIA GUANATOS: MEDICAMENTO");
@@ -363,38 +430,42 @@ MedicationInterface::MedicationInterface() {
 
         switch(opc) {
             case 1:
-                addMedication(medicationFilePtr);
+                addMedication();
                 break;
 
             case 2:
-                deleteMedication(medicationFilePtr);
+                deleteMedication();
                 break;
 
             case 3:
-                searchByCode(medicationFilePtr);
+                searchByCode();
                 break;
 
             case 4:
-                modifyMedication(medicationFilePtr);
+                searchByName();
                 break;
 
             case 5:
-                showList(medicationFilePtr);
+                modifyMedication();
                 break;
 
             case 6:
-                deleteAll(medicationFilePtr);
+                showList();
                 break;
 
             case 7:
-                importData(medicationFilePtr);
+                deleteAll();
                 break;
 
             case 8:
-                exportData(medicationFilePtr);
+                importData();
                 break;
 
             case 9:
+                exportData();
+                break;
+
+            case 10:
                 repeat=false;
                 break;
             }
