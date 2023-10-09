@@ -15,9 +15,9 @@ void MedicationFile::reindex() {
     int index = 0;
     string line;
     while (getline(dataFile, line, '#')) {
-        if (line.empty() || line[0] == '0') {
+        if (line.empty() or line[0] == '0') {
             index++;
-            continue; // Saltar registros vacíos o marcados como eliminados
+            continue; // Saltar registros vacï¿½os o marcados como eliminados
             }
 
         stringstream ss(line);
@@ -100,7 +100,7 @@ int MedicationFile::findData(const Medication& med) {
         std::string code = indexTuple.getData();
 
         if (code == med.getCode()) {
-            // Ahora que encontramos un código coincidente, verificamos si el objeto Medication también coincide
+            // Ahora que encontramos un cï¿½digo coincidente, verificamos si el objeto Medication tambiï¿½n coincide
             Medication medTemp = retrieve(idxAux);
             if (medTemp == med) {
                 return index;
@@ -147,7 +147,7 @@ Medication MedicationFile::retrieve(const int& index) {
     std::string line;
     std::getline(dataFile, line, '#');
 
-    if (line.empty() || line[0] == '0') {
+    if (line.empty() or line[0] == '0') {
         throw std::runtime_error("Dato borrado o no encontrado.");
         }
 
@@ -204,7 +204,7 @@ void MedicationFile::compress() {
     while (std::getline(dataFile, line, '#')) {
         if (line.empty()) {
             index++;
-            continue; // Saltar registros vacíos
+            continue; // Saltar registros vacï¿½os
             }
 
         if (line[0] == '1') {
