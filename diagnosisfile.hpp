@@ -11,95 +11,99 @@
 #include "indextuple.hpp"
 
 class DiagnosisFile {
-  std::string dataFileName;
-  std::string indexCode;
+        std::string dataFileName;
+        std::string indexCode;
+        std::string indexDesc;
 
-  std::fstream dataFile;
-  std::fstream indexByCode;
+        std::fstream dataFile;
+        std::fstream indexByCode;
+        std::fstream indexByDesc;
 
-  std::list<IndexTuple<>> indexByCodeList;
+        std::list<IndexTuple<>> indexByCodeList;
+        std::list<IndexTuple<>> indexByDescList;
 
-  void reindex();
+        void reindex();
 
-  template <class T>
-  std::list<IndexTuple<T>>& fileToList(std::fstream&,
-                                       std::list<IndexTuple<T>>&);
+        template <class T>
+        std::list<T>& fileToList(std::fstream&,
+                                 std::list<T>&);
 
-  template <class T>
-  std::fstream& listToFile(const std::list<T>&, std::fstream&);
+        template <class T>
+        std::fstream& listToFile(const std::list<T>&, std::fstream&);
 
-  template <class T>
-  int getIndex(const std::list<T>&, const T&);
+        template <class T>
+        int getIndex(const std::list<T>&, const T&);
 
- public:
-  DiagnosisFile();
+    public:
+        DiagnosisFile();
 
-  ~DiagnosisFile();
+        ~DiagnosisFile();
 
-  void addData(const Diagnosis&);
-  void addData(std::list<Diagnosis>&);
+        void addData(const Diagnosis&);
+        void addData(std::list<Diagnosis>&);
 
-  void deleteData(const int&);  // index
+        void deleteData(const int&);  // index
 
-  int findData(const Diagnosis&);
-  int findData(std::string&);
+        int findData(const Diagnosis&);
+        int findDataCode(std::string&);  // code
+        int findDataDesc(std::string&);  // description
 
-  std::list<Diagnosis> toList();
+        Diagnosis retrieve(const int&); //index
 
-  void clearFile();
+        std::list<Diagnosis> toList();
 
-  void compress();
-};
+        void clearFile();
+
+        void compress();
+
+        void importFromBackup(const std::string&);
+        void exportToBackup(const std::string&);
+    };
 
 /// IMPLEMENTATION
 using namespace std;
 
 template <class T>
-list<IndexTuple<T>>& DiagnosisFile::fileToList(fstream& myFstream,
-                                            list<IndexTuple<T>>& myList) {
-  string str;
-  T data;
+std::list<T>& DiagnosisFile::fileToList(std::fstream& file, std::list<T>& dataList) {
+    dataList.clear();
 
-  while (!myFstream.eof()) {
-    getline(myFstream, str, '#');
+    if (!file.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo para lectura." << std::endl;
+        return dataList;
+        }
 
-    if (str.empty()) continue;
+    T item;
+    while (file >> item) {
+        dataList.push_back(item);
+        }
 
-    stringstream strStream(str);
-
-    getline(strStream, str, '*');
-
-    if (str == "1") {
-      strStream >> data;
-      myList.push_back(data);
+    return dataList;
     }
-  }
-
-  return myList;
-}
 
 template <class T>
-fstream& DiagnosisFile::listToFile(const list<T>& myList, fstream& myFstream) {
-  for (auto it = myList.begin(); it != myList.end(); it++) {
-    myFstream << "1*" << *it << "#";
-  }
+std::fstream& DiagnosisFile::listToFile(const std::list<T>& dataList, std::fstream& file) {
+    if (!file.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo para escritura." << std::endl;
+        return file;
+        }
 
-  return myFstream;
-}
+    for (const T& item : dataList) {
+        file << item;
+        }
+
+    return file;
+    }
 
 template <class T>
-int DiagnosisFile::getIndex(const list<T>& iList, const T& elem) {
-  int index = 0;
-
-  for (typename std::list<T>::const_iterator it = iList.begin();
-       it != iList.end(); ++it) {
-    if (*it == elem) {
-      return index;  // Retorna el índice encontrado
+int DiagnosisFile::getIndex(const std::list<T>& dataList, const T& item) {
+    int index = 0;
+    for (const T& data : dataList) {
+        if (data == item) {
+            return index;
+            }
+        index++;
+        }
+    return -1;
     }
-    index++;
-  }
-
-  return -1;  // No se encontró la coincidencia
-}
 
 #endif  // __DIAGNOSISFILE_HPP__

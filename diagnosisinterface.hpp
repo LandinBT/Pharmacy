@@ -14,15 +14,16 @@
 class DiagnosisInterface {
         DiagnosisFile* diagnosisFilePtr;
 
-        void addDiagnosis(DiagnosisFile*);
-        void deleteDiagnosis(DiagnosisFile*);
-        void searchByCode(DiagnosisFile*);
-        void modifyDiagnosis(DiagnosisFile*);
-        void showList(DiagnosisFile*);
-        void deleteAll(DiagnosisFile*);
+        void addDiagnosis();
+        void deleteDiagnosis();
+        void searchByCode();
+        void searchByDesc();
+        void modifyDiagnosis();
+        void showList();
+        void deleteAll();
 
-        void importData(DiagnosisFile*);
-        void exportData(DiagnosisFile*);
+        void importData();
+        void exportData();
 
     public:
         DiagnosisInterface();

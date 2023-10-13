@@ -2,199 +2,263 @@
 using namespace std;
 
 void DiagnosisFile::reindex() {
-  string str;
-  int idx;  // index
-  Diagnosis diagnosis;
-  IndexTuple<> idxCode;  // index code
+    indexByCodeList.clear();
+    indexByDescList.clear();
 
-  dataFile.open(dataFileName, ios_base::in);  // open archive
-  if (!dataFile.is_open())
-    throw ios_base::failure("No se pudo abrir el archivo para lectura");
+    fstream dataFile(dataFileName, ios_base::in);
 
-  while (!dataFile.eof()) {
-    idx = dataFile.tellg();  // recuperar posicion (en realidad es el index)
+    if (!dataFile.is_open()) {
+        cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        return;
+        }
 
-    getline(dataFile, str, '#');
+    int index = 0;
+    string line;
+    while (getline(dataFile, line, '#')) {
+        if (line.empty() or line[0] == '0') {
+            index++;
+            continue; // Saltar registros vac�os o marcados como eliminados
+            }
 
-    if (str.empty()) {
-      continue;
-    }
+        stringstream ss(line);
+        Diagnosis diagnosis;
+        ss >> diagnosis;
 
-    stringstream strStream(str);
+        IndexTuple<> idxCode;
+        idxCode.setIndex(index);
+        idxCode.setData(diagnosis.getCode());
+        indexByCodeList.push_back(idxCode);
 
-    getline(strStream, str, '*');
+        IndexTuple<> idxDesc;
+        idxDesc.setIndex(index);
+        idxDesc.setData(diagnosis.getDesc());
+        indexByDescList.push_back(idxDesc);
 
-    if (str == "0") {  // registro borrado
-      continue;
-    }
+        index++;
+        }
 
-    strStream >> diagnosis;
-
-    idxCode.setIndex(idx);
-    idxCode.setData(diagnosis.getCode());
-    indexByCodeList.push_back(idxCode);
-  }
-
-  indexByCode.open(indexCode, ios_base::out | ios_base::trunc);
-  if (!indexByCode.is_open()) {
-    throw ios_base::failure(
-        "No se pudo abrir el archivo para lectura, indexByCode");
-  }
-
-  listToFile(indexByCodeList, indexByCode);
-
-  indexByCode.close();
-}
-
-DiagnosisFile::DiagnosisFile()
-    : dataFileName("diagnosis.file"), indexCode("diagnosis_code.index") {}
-
-DiagnosisFile::~DiagnosisFile() {
-  if (dataFile.is_open()) {
     dataFile.close();
-  }
+    }
 
-  if (indexByCode.is_open()) {
-    indexByCode.close();
-  }
-}
+DiagnosisFile::DiagnosisFile() : dataFileName("diagnosis.file"),
+    indexCode("diagnosis_code.index"), indexDesc("diagnosis_desc.index") {
+    reindex();
+    }
+
+DiagnosisFile::~DiagnosisFile() {}
 
 void DiagnosisFile::addData(const Diagnosis& dx) {
-  dataFile.open(dataFileName, ios_base::out | ios_base::app);
+    dataFile.open(dataFileName, ios_base::out | ios_base::app);
 
-  if (!dataFile.is_open()) {
-    throw ios_base::failure("No se pudo abrir el archivo para escritura");
-  }
+    if(!dataFile.is_open()) {
+        throw ios_base::failure("No se pudo abrir el archivo de datos para escritura.");
+        }
 
-  dataFile << "1*" << dx << "#";
-
-  dataFile.close();
-}
-
-void DiagnosisFile::addData(list<Diagnosis>& diagList) {
-  dataFile.open(dataFileName, ios_base::out | ios_base::app);
-
-  if (!dataFile.is_open()) {
-    throw ios_base::failure("No se pudo abrir el archivo para escritura");
-  }
-
-  listToFile(diagList, dataFile);
-
-  dataFile.close();
-
-  reindex();
-}
-
-void DiagnosisFile::deleteData(const int& idx) {
-  if (idx >= 0 and idx < indexByCodeList.size()) {
-    auto it = indexByCodeList.begin();
-    advance(it, idx);
-
-    dataFile.seekp(it->getIndex());
-    dataFile << "0";
-
-    indexByCodeList.erase(it);
+    dataFile<<dx<<'#';
+    dataFile.close();
 
     reindex();
-  }
-}
+    }
+
+void DiagnosisFile::addData(list<Diagnosis>& diagList) {
+    dataFile.open(dataFileName, ios_base::out | ios_base::app);
+
+    if(!dataFile.is_open()) {
+        throw ios_base::failure("No se pudo abrir el archivo de datos para escritura.");
+        }
+
+    listToFile(diagList, dataFile);
+    dataFile.close();
+    reindex();
+    }
+
+void DiagnosisFile::deleteData(const int& idx) {
+    dataFile.open(dataFileName, ios_base::in | ios_base::out);
+
+    if(!dataFile.is_open()) {
+        throw ios_base::failure("No se pudo abrir el archivo de datos para lectura/escritura.");
+        }
+
+    dataFile.seekp(idx, ios_base::beg);
+    dataFile.put('0');
+    dataFile.close();
+
+    reindex();
+    compress();
+    }
 
 int DiagnosisFile::findData(const Diagnosis& dx) {
-  int idx = 0;
-  for (const IndexTuple<>& indexTuple : indexByCodeList) {
-    int idxAux = indexTuple.getIndex();
-    string code = indexTuple.getData();
+    int idx(0);
+    for(const IndexTuple<>& idxTup : indexByCodeList) {
+        int idxAux=idxTup.getIndex();
+        string code=idxTup.getData();
 
-    if (code == dx.getCode()) {
-      dataFile.seekg(idxAux);
-      Diagnosis dxTemp;
-      dataFile >> dxTemp;
+        if(code==dx.getCode()) {
+            Diagnosis diagTemp=retrieve(idxAux);
 
-      if (dxTemp == dx) {
-        return idx;
-      }
+            if(diagTemp==dx) {
+                return idx;
+                }
+            }
+
+        idx++;
+        }
+
+    return -1;
     }
-    idx++;
-  }
 
-  return -1;
-}
+int DiagnosisFile::findDataCode(string& findCode) {
+    int idx(0);
 
-int DiagnosisFile::findData(string& code) {
-  int idx = getIndex(indexByCodeList, IndexTuple<>(-1, code));
-  if (idx != -1) {
-    return idx;
-  }
-  return -1;
-}
+    for(const IndexTuple<>& idxTup : indexByCodeList) {
+        const string& codeAux=idxTup.getData();
+
+        if(codeAux==findCode) {
+            return idx;
+            }
+
+        idx++;
+        }
+
+    return -1;
+    }
+
+int DiagnosisFile::findDataDesc(string& findDesc) {
+    int idx(0);
+
+    for(const IndexTuple<>& idxTup : indexByDescList) {
+        const string& descAux=idxTup.getData();
+
+        if(descAux==findDesc) {
+            return idx;
+            }
+
+        idx++;
+        }
+
+    return -1;
+    }
+
+Diagnosis DiagnosisFile::retrieve(const int& idx) {
+    dataFile.open(dataFileName, ios_base::in);
+
+    if(!dataFile.is_open()) {
+        throw ios_base::failure("No se pudo abrir el archivo de datos para lectura.");
+        }
+
+    dataFile.seekg(idx, ios_base::beg);
+
+    string str;
+    getline(dataFile, str, '#');
+
+    if(str.empty() or str[0]=='0') {
+        throw ios_base::failure("Dato borrado o no encontrado.");
+        }
+
+    istringstream strStream(str);
+    Diagnosis diagnosis;
+
+    strStream>>diagnosis;
+
+    dataFile.close();
+
+    return diagnosis;
+    }
 
 list<Diagnosis> DiagnosisFile::toList() {
-  list<Diagnosis> diagList;
+    dataFile.open(dataFileName, ios_base::in);
 
-  dataFile.open(dataFileName, ios_base::in);
-
-  if (!dataFile.is_open()) {
-    throw ios_base::failure(
-        "No se pudo abrir el archivo de datos para lectura.");
-  }
-
-  while (!dataFile.eof()) {
-    string str;
-    getline(dataFile, str, '#');
-
-    if (str.empty()) {
-      continue;
+    if(!dataFile.is_open()){
+        throw ios_base::failure("No se pudo abrir el archivo de datos para lectura.");
     }
 
-    if (str[0] == '1') {
-      Diagnosis diagnosis;
-      stringstream strStream(str);
-      strStream >> diagnosis;
-      diagList.push_back(diagnosis);
-    }
-  }
+    list<Diagnosis> diagList;
+    fileToList(dataFile, diagList);
 
-  dataFile.close();
-  return diagList;
-}
+    dataFile.close();
+
+    return diagList;
+    }
 
 void DiagnosisFile::clearFile() {
-  dataFile.close();
-  indexByCode.close();
+    remove(dataFileName.c_str());
+    remove(indexCode.c_str());
+    remove(indexDesc.c_str());
 
-  remove(dataFileName.c_str());
-  remove(indexCode.c_str());
-
-  indexByCodeList.clear();
-}
+    indexByCodeList.clear();
+    indexByDescList.clear();
+    }
 
 void DiagnosisFile::compress() {
-  string tempName = dataFileName + ".temp";
-  fstream tempFile(tempName, ios_base::out | ios_base::trunc);
+    string tempFileName(dataFileName+".temp");
+    fstream tempFile(tempFileName, ios_base::out | ios_base::trunc);
 
-  if (!tempFile.is_open()) {
-    throw ios_base::failure("No se pudo crear el archivo temporal.");
-  }
+    if(!tempFile.is_open()){
+        throw ios_base::failure("No se pudo crear el archivo temporal.");
+    }
 
-  dataFile.seekg(0);
+    dataFile.open(dataFileName, ios_base::in);
 
-  while (!dataFile.eof()) {
+    if(!dataFile.is_open()){
+        throw ios_base::failure("No se pudo abrir el archivo de datos para lectura.");
+    }
+
+    int idx(0);
     string str;
-    getline(dataFile, str, '#');
 
-    if (str.empty()) {
-      continue;
+    while(getline(dataFile, str, '#')){
+        if(str.empty()){
+            idx++;
+            continue;
+        }
+
+        if(str[0]=='1'){
+            tempFile<<str<<'#';
+        }
+
+        idx++;
     }
 
-    if (str[0] == '1') {
-      tempFile << str << "#";
+    dataFile.close();
+    tempFile.close();
+
+    remove(dataFileName.c_str());
+    rename(tempFileName.c_str(), dataFileName.c_str());
+
+    reindex();
     }
-  }
 
-  dataFile.close();
-  remove(dataFileName.c_str());
+void DiagnosisFile::importFromBackup(const string& fileName) {
+    ifstream archive(fileName);
 
-  rename(tempName.c_str(), dataFileName.c_str());
+    if(!archive.is_open()){
+        throw ios_base::failure("No se pudo abrir el archivo de respaldo para lectura.");
+    }
 
-  reindex();
-}
+    list<Diagnosis> diagList;
+    Diagnosis diagnosis;
+
+    while(archive>>diagnosis){
+        diagList.push_back(diagnosis);
+    }
+
+    archive.close();
+
+    addData(diagList);
+    }
+
+void DiagnosisFile::exportToBackup(const string& fileName) {
+    ofstream archive(fileName);
+
+    if(!archive.is_open()){
+        throw ios_base::failure("No se pudo abrir el archivo de respaldo para escritura.");
+    }
+
+    list<Diagnosis> diagList=toList();
+
+    for(const Diagnosis& diagnosis : diagList){
+        archive<<diagnosis<<"#";
+    }
+
+    archive.close();
+    }
