@@ -50,10 +50,10 @@ MedicationFile::MedicationFile()
 MedicationFile::~MedicationFile() {}
 
 void MedicationFile::addData(const Medication& medication) {
-    std::fstream dataFile(dataFileName, std::ios_base::out | std::ios_base::app);
+    fstream dataFile(dataFileName, ios_base::out | ios_base::app);
 
     if (!dataFile.is_open()) {
-        std::cerr << "Error: No se pudo abrir el archivo de datos para escritura." << std::endl;
+        cerr << "No se pudo abrir el archivo de datos para escritura." << endl;
         return;
         }
 
@@ -63,11 +63,11 @@ void MedicationFile::addData(const Medication& medication) {
     reindex();
     }
 
-void MedicationFile::addData(std::list<Medication>& medicationList) {
-    std::fstream dataFile(dataFileName, std::ios_base::out | std::ios_base::app);
+void MedicationFile::addData(list<Medication>& medicationList) {
+    fstream dataFile(dataFileName, ios_base::out | ios_base::app);
 
     if (!dataFile.is_open()) {
-        std::cerr << "Error: No se pudo abrir el archivo de datos para escritura." << std::endl;
+        cerr << "No se pudo abrir el archivo de datos para escritura." << std::endl;
         return;
         }
 
@@ -78,7 +78,7 @@ void MedicationFile::addData(std::list<Medication>& medicationList) {
     }
 
 void MedicationFile::deleteData(const int& index) {
-    std::fstream dataFile(dataFileName, std::ios_base::in | std::ios_base::out);
+    fstream dataFile(dataFileName, std::ios_base::in | std::ios_base::out);
 
     if (!dataFile.is_open()) {
         std::cerr << "Error: No se pudo abrir el archivo de datos para lectura/escritura." << std::endl;
@@ -163,7 +163,7 @@ std::list<Medication> MedicationFile::toList() {
     std::fstream dataFile(dataFileName, std::ios_base::in);
 
     if (!dataFile.is_open()) {
-        std::cerr << "Error: No se pudo abrir el archivo de datos para lectura." << std::endl;
+        std::cerr << "No se pudo abrir el archivo de datos para lectura." << std::endl;
         throw std::runtime_error("Error al abrir el archivo de datos.");
         }
 

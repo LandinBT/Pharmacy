@@ -345,7 +345,6 @@ void MedicationInterface::deleteAll() {
 
 void MedicationInterface::importData() {
     UserInterfaceUtils uiUtils;
-    list<Medication> medList;
     string str, title="*** Recuperar datos de medicamentos ***";
 
     system("cls");
