@@ -63,23 +63,23 @@ list<Consultation> ConsultationFile::importFromBackup(const string& fileName) {
             consultation.setTime(time);
             //diagnosis
             strStream>>diagnosis;
-            consultation.setDiagnosis(diagnosis);
+            consultation.setDiagnosisCode(diagnosis.getCode());
             //therapeutic indications
             getline(strStream, therapIndic, '*');
             consultation.setTherapIndic(therapIndic);
             //doctor
             strStream>>doctor;
-            consultation.setDoctor(doctor);
+            consultation.setDoctorEmpCode(doctor.getEmpCode());
             //patient
             strStream>>patient;
-            consultation.setPatient(patient);
+            consultation.setPatientSSN(patient.getSocSecNum());
             //medications
             strStream>>medication;
-            consultation.setMed1(medication);
+            consultation.setMed1Code(medication.getCode());
             strStream>>medication;
-            consultation.setMed2(medication);
+            consultation.setMed2Code(medication.getCode());
             strStream>>medication;
-            consultation.setMed3(medication);
+            consultation.setMed3Code(medication.getCode());
             }
         catch(const exception& ex) {
             cout<<"Algo salió mal: "<<ex.what()<<endl;

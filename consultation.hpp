@@ -14,13 +14,13 @@
 class Consultation {
   Date date;
   Time time;
-  Diagnosis diagnosis;
+  std::string diagnosisCode;
   std::string therapIndic;  // therapeutic indications
-  Doctor doctor;
-  Patient patient;
-  Medication med1;  // medication1
-  Medication med2;  // medication2
-  Medication med3;  // medication3
+  std::string doctorEmpCode;
+  std::string patientSSN;
+  std::string med1Code;  // medication1
+  std::string med2Code;  // medication2
+  std::string med3Code;  // medication3
 
  public:
   Consultation();
@@ -30,25 +30,25 @@ class Consultation {
 
   Date getDate() const;
   Time getTime() const;
-  Diagnosis getDiagnosis() const;
+  std::string getDiagnosisCode() const;
   std::string getTherapIndic() const;
-  Doctor getDoctor() const;
-  Patient getPatient() const;
-  Medication getMed1() const;
-  Medication getMed2() const;
-  Medication getMed3() const;
+  std::string getDoctorEmpCode() const;
+  std::string getPatientSSN() const;
+  std::string getMed1Code() const;
+  std::string getMed2Code() const;
+  std::string getMed3Code() const;
 
   std::string toString() const;
 
   void setDate(const Date&);
   void setTime(const Time&);
-  void setDiagnosis(const Diagnosis&);
+  void setDiagnosisCode(const std::string&);
   void setTherapIndic(const std::string&);
-  void setDoctor(const Doctor&);
-  void setPatient(const Patient&);
-  void setMed1(const Medication&);
-  void setMed2(const Medication&);
-  void setMed3(const Medication&);
+  void setDoctorEmpCode(const std::string&);
+  void setPatientSSN(const std::string&);
+  void setMed1Code(const std::string&);
+  void setMed2Code(const std::string&);
+  void setMed3Code(const std::string&);
 
   bool operator==(const Consultation&) const;
   bool operator!=(const Consultation&) const;
